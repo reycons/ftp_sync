@@ -8,13 +8,13 @@ from pathlib import Path
 
 import pytest
 
-from app.state_manager import (
+from rey_lib.state_manager import (
     is_new_or_updated,
     load_state,
     record_downloaded,
     save_state,
 )
-from lib.error_utils import StateError
+from rey_lib.error_utils import StateError
 
 
 class TestLoadState:
