@@ -1,0 +1,49 @@
+# ftp_sync — production configuration
+# Secrets (FTP password) must be placed in .env — never in this file.
+
+logging:
+  level: INFO                         # DEBUG in dev, INFO in prod
+  log_dir: C:/ftp_sync/logs
+  app_name: ftp_sync
+
+ftp:
+  host: ftp.example.com
+  port: 21
+  user: your_ftp_username
+  # FTP_PASSWORD is read from .env
+
+sync:
+  # List every remote directory to watch.  Add or remove paths freely.
+  remote_paths:
+    - /incoming/
+    - /reports/
+
+  # Root directory on this machine where downloaded files are saved.
+  local_destination: C:/ftp_downloads
+
+  # JSON file that tracks which files have already been downloaded.
+  state_file: C:/ftp_sync/ftp_sync_state.json
+
+  # Number of files processed per download chunk.
+  chunk_size: 100
+
+filters:
+  # Only download files with these extensions.
+  # Leave the list empty ([]) to download all file types.
+  extensions:
+    - .csv
+    - .txt
+    - .xlsx
+
+  # Optional glob pattern applied to filenames (case-insensitive).
+  # Set to null to disable.
+  name_pattern: null
+
+  # Skip files older than this many days.
+  # Set to null to download files of any age.
+  max_age_days: null
+
+schedule:
+  # For documentation only — the actual schedule is set in Windows Task Scheduler.
+  # See setup_task.ps1 and README.md.
+  description: "Daily at 06:00 AM"

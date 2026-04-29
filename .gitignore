@@ -1,0 +1,21 @@
+# Virtual environment
+.venv/
+
+# Secrets — never committed
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# State file — environment-specific runtime data
+ftp_sync_state*.json
+
+# Logs
+logs/
+
+# Linting / formatting caches
+.ruff_cache/
+.mypy_cache/
