@@ -19,3 +19,4 @@ logs/
 # Linting / formatting caches
 .ruff_cache/
 .mypy_cache/
+.DS_Store
