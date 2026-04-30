@@ -1,0 +1,26 @@
+# FTP connection — clienta
+# Password: set FTP_PASSWORD_CLIENTA in .env
+
+connections:
+  - name: clienta
+    ftp:
+      host: ftp.clienta.com
+      port: 21
+      user: clienta_user
+      password: ""          # injected from .env at startup — never set here
+
+    sync:
+      remote_paths:
+        - /incoming/
+        - /reports/
+      local_destination: ~/ftp_downloads/clienta
+      state_file: ~/ftp_downloads/clienta/.state.json
+      initial_stamp: null   # ISO 8601 UTC e.g. "2026-01-01T00:00:00+00:00"
+
+    filters:
+      extensions:
+        - .csv
+        - .txt
+        - .xlsx
+      name_pattern: null    # glob e.g. "report_*" — null disables
+      max_age_days: null    # integer e.g. 30 — null disables

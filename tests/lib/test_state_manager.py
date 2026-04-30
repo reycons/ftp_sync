@@ -1,10 +1,9 @@
-"""Unit tests for app/state_manager.py."""
+"""Unit tests for rey_lib/state_manager.py."""
 
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import datetime, timedelta, timezone
 
 import pytest
 
@@ -20,49 +19,49 @@ from rey_lib.error_utils import StateError
 class TestLoadState:
     """Tests for load_state()."""
 
-    def test_returns_empty_dict_when_no_state_file(self, ctx):
+    def test_returns_empty_dict_when_no_state_file(self, conn):
         """Fresh run with no existing state file returns an empty dict."""
-        result = load_state(ctx)
+        result = load_state(conn)
         assert result == {}
 
-    def test_loads_existing_state(self, ctx):
+    def test_loads_existing_state(self, conn):
         """Existing state file is parsed and returned correctly."""
         state_data = {"/incoming/data.csv": "2026-01-15T10:00:00+00:00"}
-        ctx.state_file.parent.mkdir(parents=True, exist_ok=True)
-        ctx.state_file.write_text(json.dumps(state_data), encoding="utf-8")
+        conn.state_file.parent.mkdir(parents=True, exist_ok=True)
+        conn.state_file.write_text(json.dumps(state_data), encoding="utf-8")
 
-        result = load_state(ctx)
+        result = load_state(conn)
 
         assert result == state_data
 
-    def test_raises_state_error_on_corrupt_json(self, ctx):
+    def test_raises_state_error_on_corrupt_json(self, conn):
         """A corrupt state file raises StateError."""
-        ctx.state_file.parent.mkdir(parents=True, exist_ok=True)
-        ctx.state_file.write_text("not valid json", encoding="utf-8")
+        conn.state_file.parent.mkdir(parents=True, exist_ok=True)
+        conn.state_file.write_text("not valid json", encoding="utf-8")
 
         with pytest.raises(StateError):
-            load_state(ctx)
+            load_state(conn)
 
 
 class TestSaveState:
     """Tests for save_state()."""
 
-    def test_writes_state_to_disk(self, ctx):
+    def test_writes_state_to_disk(self, conn):
         """State dict is persisted as valid JSON."""
         state = {"/incoming/file.csv": "2026-01-15T10:00:00+00:00"}
 
-        save_state(ctx, state)
+        save_state(conn, state)
 
-        written = json.loads(ctx.state_file.read_text(encoding="utf-8"))
+        written = json.loads(conn.state_file.read_text(encoding="utf-8"))
         assert written == state
 
-    def test_creates_parent_directories(self, ctx):
+    def test_creates_parent_directories(self, conn, tmp_path):
         """Parent directories are created if absent."""
-        ctx.state_file = ctx.state_file.parent / "nested" / "deep" / "state.json"
+        conn.state_file = tmp_path / "nested" / "deep" / "state.json"
 
-        save_state(ctx, {})
+        save_state(conn, {})
 
-        assert ctx.state_file.exists()
+        assert conn.state_file.exists()
 
 
 class TestIsNewOrUpdated:
@@ -79,7 +78,6 @@ class TestIsNewOrUpdated:
 
     def test_updated_file_is_new(self, utc_dt):
         """File with a later timestamp than state is considered updated."""
-        from datetime import timedelta
         older = utc_dt - timedelta(hours=1)
         state = {"/incoming/file.csv": older.isoformat()}
         assert is_new_or_updated(state, "/incoming/", "file.csv", utc_dt) is True
@@ -101,7 +99,6 @@ class TestRecordDownloaded:
 
     def test_overwrites_existing_entry(self, utc_dt):
         """An existing entry is overwritten with the new timestamp."""
-        from datetime import timedelta
         older = utc_dt - timedelta(days=1)
         state = {"/incoming/file.csv": older.isoformat()}
         record_downloaded(state, "/incoming/", "file.csv", utc_dt)
