@@ -19,25 +19,25 @@ from rey_lib.errors.error_utils import StateError
 class TestLoadState:
     """Tests for load_state()."""
 
-    def test_returns_empty_dict_when_no_state_file(self, conn):
+    def test_returns_empty_dict_when_no_state_file(self, ctx, conn):
         """Fresh run with no existing state file returns an empty dict."""
         result = load_state(ctx, conn)
         assert result == {}
 
-    def test_loads_existing_state(self, conn):
+    def test_loads_existing_state(self, ctx, conn):
         """Existing state file is parsed and returned correctly."""
         state_data = {"/incoming/data.csv": "2026-01-15T10:00:00+00:00"}
-        conn.state_file.parent.mkdir(parents=True, exist_ok=True)
-        conn.state_file.write_text(json.dumps(state_data), encoding="utf-8")
+        conn.sync.state_file.parent.mkdir(parents=True, exist_ok=True)
+        conn.sync.state_file.write_text(json.dumps(state_data), encoding="utf-8")
 
         result = load_state(ctx, conn)
 
         assert result == state_data
 
-    def test_raises_state_error_on_corrupt_json(self, conn):
+    def test_raises_state_error_on_corrupt_json(self, ctx, conn):
         """A corrupt state file raises StateError."""
-        conn.state_file.parent.mkdir(parents=True, exist_ok=True)
-        conn.state_file.write_text("not valid json", encoding="utf-8")
+        conn.sync.state_file.parent.mkdir(parents=True, exist_ok=True)
+        conn.sync.state_file.write_text("not valid json", encoding="utf-8")
 
         with pytest.raises(StateError):
             load_state(ctx, conn)
@@ -46,22 +46,22 @@ class TestLoadState:
 class TestSaveState:
     """Tests for save_state()."""
 
-    def test_writes_state_to_disk(self, conn):
+    def test_writes_state_to_disk(self, ctx, conn):
         """State dict is persisted as valid JSON."""
         state = {"/incoming/file.csv": "2026-01-15T10:00:00+00:00"}
 
         save_state(ctx, conn, state)
 
-        written = json.loads(conn.state_file.read_text(encoding="utf-8"))
+        written = json.loads(conn.sync.state_file.read_text(encoding="utf-8"))
         assert written == state
 
-    def test_creates_parent_directories(self, conn, tmp_path):
+    def test_creates_parent_directories(self, ctx, conn, tmp_path):
         """Parent directories are created if absent."""
-        conn.state_file = tmp_path / "nested" / "deep" / "state.json"
+        conn.sync.state_file = tmp_path / "nested" / "deep" / "state.json"
 
         save_state(ctx, conn, {})
 
-        assert conn.state_file.exists()
+        assert conn.sync.state_file.exists()
 
 
 class TestIsNewOrUpdated:
