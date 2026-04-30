@@ -15,6 +15,7 @@ def ctx() -> Namespace:
     return Namespace(
         env="dev",
         log_depth=0,
+        log_file="logs/ftp_sync_test.log",
         sync=Namespace(chunk_size=10),
     )
 
@@ -29,11 +30,13 @@ def conn(tmp_path: Path) -> Namespace:
             port=21,
             user="user",
             password="password",
+            max_retry_sessions=3,
         ),
         sync=Namespace(
             remote_paths=["/incoming/"],
             local_destination=tmp_path / "downloads",
             state_file=tmp_path / "state.json",
+            failed_file=tmp_path / ".failed.json",
             initial_stamp=None,
         ),
         filters=Namespace(

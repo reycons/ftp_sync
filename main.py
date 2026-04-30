@@ -18,9 +18,9 @@ import os
 import sys
 from pathlib import Path
 
-from rey_lib.config_utils import build_ctx
-from rey_lib.log_utils import setup_logging
-from rey_lib.sync_engine import run_sync
+from rey_lib.config.config_utils import build_ctx
+from rey_lib.logs.log_utils import setup_logging
+from rey_lib.ftp.sync_engine import run_sync
 
 from app.error_utils import FtpSyncError
 
