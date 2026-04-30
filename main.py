@@ -58,21 +58,23 @@ def main() -> None:
         _inject_connection_secrets(conn)
 
     # Run sync for every connection sequentially.
-    total  = 0
-    failed = 0
+    total         = 0
+    conn_failed   = 0
     for conn in connections:
         try:
             downloaded = run_sync(ctx, conn)
             total += downloaded
         except FtpSyncError as exc:
             log.error("Sync failed for connection '%s': %s", conn.name, exc)
-            failed += 1
+            conn_failed += 1
 
     log.info(
         "=== ftp_sync finished — total downloaded: %d, failed connections: %d ===",
-        total, failed,
+        total, conn_failed,
     )
-    sys.exit(0 if failed == 0 else 1)
+    # Exit non-zero if any connection failed entirely — individual file failures
+    # are queued for retry and do not affect the exit code here.
+    sys.exit(0 if conn_failed == 0 else 1)
 
 
 def _parse_args() -> argparse.Namespace:
