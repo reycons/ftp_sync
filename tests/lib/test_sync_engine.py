@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
-from rey_lib.sync_engine import (
+from rey_lib.ftp.sync_engine import (
     _apply_filters,
     _filter_by_extension,
     _filter_by_max_age,

@@ -1,5 +1,5 @@
 # Shared library — all config, logging, FTP, and state management
-rey_lib @ git+https://github.com/reycons/rey_lib.git@v0.7.0
+rey_lib @ git+https://github.com/reycons/rey_lib.git@v0.7.3
 
 # Linting and formatting
 ruff==0.4.4
