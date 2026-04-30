@@ -21,7 +21,7 @@ class TestLoadState:
 
     def test_returns_empty_dict_when_no_state_file(self, conn):
         """Fresh run with no existing state file returns an empty dict."""
-        result = load_state(conn)
+        result = load_state(ctx, conn)
         assert result == {}
 
     def test_loads_existing_state(self, conn):
@@ -30,7 +30,7 @@ class TestLoadState:
         conn.state_file.parent.mkdir(parents=True, exist_ok=True)
         conn.state_file.write_text(json.dumps(state_data), encoding="utf-8")
 
-        result = load_state(conn)
+        result = load_state(ctx, conn)
 
         assert result == state_data
 
@@ -40,7 +40,7 @@ class TestLoadState:
         conn.state_file.write_text("not valid json", encoding="utf-8")
 
         with pytest.raises(StateError):
-            load_state(conn)
+            load_state(ctx, conn)
 
 
 class TestSaveState:
@@ -50,7 +50,7 @@ class TestSaveState:
         """State dict is persisted as valid JSON."""
         state = {"/incoming/file.csv": "2026-01-15T10:00:00+00:00"}
 
-        save_state(conn, state)
+        save_state(ctx, conn, state)
 
         written = json.loads(conn.state_file.read_text(encoding="utf-8"))
         assert written == state
@@ -59,7 +59,7 @@ class TestSaveState:
         """Parent directories are created if absent."""
         conn.state_file = tmp_path / "nested" / "deep" / "state.json"
 
-        save_state(conn, {})
+        save_state(ctx, conn, {})
 
         assert conn.state_file.exists()
 

@@ -44,9 +44,6 @@ def conn(tmp_path: Path) -> Namespace:
             name_pattern=None,
             max_age_days=None,
         ),
-        # Convenience aliases used directly by state_manager functions.
-        state_file=tmp_path / "state.json",
-        initial_stamp=None,
         log_depth=0,
     )
 
