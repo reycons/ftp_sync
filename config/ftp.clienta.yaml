@@ -1,20 +1,23 @@
-# FTP connection — clienta
-# Password: set FTP_PASSWORD_CLIENTA in .env
+# FTP connection — client01
+# Add the credentials below to your .env file.
+#
+#   FTP_USER_CLIENT01=your_username
+#   FTP_PASSWORD_CLIENT01=your_password
 
 connections:
-  - name: clienta
+  - name: client01
     ftp:
-      host: ftp.clienta.com
+      host: ftp.client01.com
       port: 21
-      user: clienta_user
-      password: ""          # injected from .env at startup — never set here
+      user_env: FTP_USER_CLIENT01         # env var name — value comes from .env
+      password_env: FTP_PASSWORD_CLIENT01 # env var name — value comes from .env
 
     sync:
       remote_paths:
         - /incoming/
         - /reports/
-      local_destination: ~/ftp_downloads/clienta
-      state_file: ~/ftp_downloads/clienta/.state.json
+      local_destination: ~/ftp_downloads/client01
+      state_file: ~/ftp_downloads/client01/.state.json
       initial_stamp: null   # ISO 8601 UTC e.g. "2026-01-01T00:00:00+00:00"
 
     filters:

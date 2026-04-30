@@ -51,10 +51,11 @@ def main() -> None:
         log.error("No connections defined in config — nothing to do.")
         sys.exit(1)
 
-    # Inject FTP password for each connection from .env.
-    # Convention: FTP_PASSWORD_{NAME_UPPER} e.g. FTP_PASSWORD_CLIENTA
+    # Inject FTP credentials for each connection from .env.
+    # Each connection config declares which env vars to read via
+    # ftp.user_env and ftp.password_env — fully self-documenting.
     for conn in connections:
-        _inject_connection_password(conn)
+        _inject_connection_secrets(conn)
 
     # Run sync for every connection sequentially.
     total  = 0
@@ -88,23 +89,44 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _inject_connection_password(conn: object) -> None:
-    """Resolve FTP password from .env and inject into the connection Namespace.
+def _inject_connection_secrets(conn: object) -> None:
+    """Resolve FTP credentials from .env and inject into the connection Namespace.
 
-    Convention: env var name is FTP_PASSWORD_{CONNECTION_NAME_UPPER}.
-    Example: connection name 'clienta' → env var 'FTP_PASSWORD_CLIENTA'.
+    The config file declares which env vars to read via ftp.user_env and
+    ftp.password_env — making each connection fully self-documenting.
+
+    Example config:
+        ftp:
+          user_env: FTP_USER_CLIENT01
+          password_env: FTP_PASSWORD_CLIENT01
+
+    Example .env:
+        FTP_USER_CLIENT01=joerey
+        FTP_PASSWORD_CLIENT01=secret
 
     Args:
-        conn: Connection Namespace with a .name attribute and a .ftp child Namespace.
+        conn: Connection Namespace with a .ftp child Namespace containing
+              user_env and password_env attribute names.
     """
-    env_var  = f"FTP_PASSWORD_{conn.name.upper()}"
-    password = os.getenv(env_var, "")
+    user_env     = getattr(conn.ftp, "user_env", "")
+    password_env = getattr(conn.ftp, "password_env", "")
+
+    user = os.getenv(user_env, "") if user_env else ""
+    password = os.getenv(password_env, "") if password_env else ""
+
+    if not user:
+        log.warning(
+            "No user found for connection '%s' — expected env var '%s' in .env.",
+            conn.name, user_env,
+        )
     if not password:
         log.warning(
             "No password found for connection '%s' — expected env var '%s' in .env.",
-            conn.name, env_var,
+            conn.name, password_env,
         )
+
     # Inject directly into the ftp child Namespace.
+    object.__setattr__(conn.ftp, "user", user)
     object.__setattr__(conn.ftp, "password", password)
 
 
