@@ -8,26 +8,26 @@
 connections:
   - name: client01
     ftp:
-      protocol: ftp                       # ftp | ftps | sftp
+      protocol: ftp                        # ftp | ftps | sftp
       host: ftp.client01.com
-      port: 21                            # 21 for ftp/ftps, 22 for sftp
+      port: 21                             # 21 for ftp/ftps, 22 for sftp
       user_env: FTP_USER_CLIENT01
       password_env: FTP_PASSWORD_CLIENT01
-      max_retry_sessions: 3               # abandon file after this many failed runs
+      max_retry_sessions: 3                # abandon file after this many failed runs
 
     sync:
       remote_paths:
-        - /incoming/                      # simple path
-        - /archive/2026-*/               # glob — expands to all matching subdirs
+        - /incoming/                       # simple path
+        - /archive/2026-*/                 # glob — expands to all matching subdirs
       local_destination: ~/ftp_downloads/client01
       state_file: ~/ftp_downloads/client01/.state.json
-      failed_file: ~/ftp_downloads/client01/.failed.json  # files that exceeded max retries
+      failed_file: ~/ftp_downloads/client01/.failed.json
       initial_stamp: null
 
     filters:
-      extensions:
-        - .csv
-        - .txt
-        - .xlsx
-      name_pattern: null
-      max_age_days: null
+      extensions: []                       # include only these extensions — empty = all
+      exclude_extensions:                  # always exclude these extensions
+        - .filepart                        # partial/incomplete files
+        - .tmp
+      name_pattern: null                   # glob pattern — null = no filter
+      max_age_days: null                   # null = no age limit

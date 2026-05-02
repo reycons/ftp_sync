@@ -1,12 +1,12 @@
-# ftp_sync — development configuration
+# ftp_sync — production configuration
 # Secrets must be in .env — never in this file.
 # FTP connections are defined in config/ftp.{name}.yaml files.
+# This is a template — update log_path for each client deployment.
 
-logging:
-  log_path: logs/ftp_sync_{operation}_{timestamp}.log
+log_path: D:/Python/logs/ftp_sync_{operation}_{timestamp}.log
 
 sync:
-  chunk_size: 50
+  chunk_size: 100
 
 schedule:
-  description: "Daily at 06:00 AM"
+  description: "Daily at 04:00 AM"

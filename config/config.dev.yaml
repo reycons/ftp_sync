@@ -2,11 +2,10 @@
 # Secrets must be in .env — never in this file.
 # FTP connections are defined in config/ftp.{name}.yaml files.
 
-logging:
-  log_path: logs/ftp_sync_{operation}_{timestamp}.log
+log_path: logs/ftp_sync_{operation}_{timestamp}.log
 
 sync:
   chunk_size: 50
 
 schedule:
-  description: "Daily at 06:00 AM"
+  description: "Daily at 04:00 AM"
