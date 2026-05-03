@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
 import sys
 from pathlib import Path
 
@@ -22,7 +21,7 @@ from rey_lib.config.config_utils import build_ctx
 from rey_lib.logs.log_utils import setup_logging
 from rey_lib.ftp.sync_engine import run_sync
 
-from app.error_utils import FtpSyncError
+from ftp_sync.error_utils import FtpSyncError
 
 # Project root is the directory containing this file.
 _PROJECT_ROOT = Path(__file__).parent
@@ -45,17 +44,16 @@ def main() -> None:
     setup_logging(ctx, operation="sync")
     log.info("=== ftp_sync starting (env=%s) ===", ctx.env)
 
-    # Connections are defined in config/ftp.{name}.yaml files.
+    # Connections are defined in config/data_feeds/ftp.{name}.yaml files.
     connections = getattr(ctx, "connections", [])
     if not connections:
         log.error("No connections defined in config — nothing to do.")
         sys.exit(1)
 
-    # Inject FTP credentials for each connection from .env.
-    # Each connection config declares which env vars to read via
-    # ftp.user_env and ftp.password_env — fully self-documenting.
+    # FTP credentials are resolved by build_ctx via env.<name> references.
+    # Validate and warn when required values are missing.
     for conn in connections:
-        _inject_connection_secrets(conn)
+        _validate_connection_secrets(conn)
 
     # Run sync for every connection sequentially.
     total         = 0
@@ -91,45 +89,15 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _inject_connection_secrets(conn: object) -> None:
-    """Resolve FTP credentials from .env and inject into the connection Namespace.
-
-    The config file declares which env vars to read via ftp.user_env and
-    ftp.password_env — making each connection fully self-documenting.
-
-    Example config:
-        ftp:
-          user_env: FTP_USER_CLIENT01
-          password_env: FTP_PASSWORD_CLIENT01
-
-    Example .env:
-        FTP_USER_CLIENT01=joerey
-        FTP_PASSWORD_CLIENT01=secret
-
-    Args:
-        conn: Connection Namespace with a .ftp child Namespace containing
-              user_env and password_env attribute names.
-    """
-    user_env     = getattr(conn.ftp, "user_env", "")
-    password_env = getattr(conn.ftp, "password_env", "")
-
-    user = os.getenv(user_env, "") if user_env else ""
-    password = os.getenv(password_env, "") if password_env else ""
+def _validate_connection_secrets(conn: object) -> None:
+    """Warn if resolved FTP user/password are missing for a connection."""
+    user = getattr(conn.ftp, "user", "")
+    password = getattr(conn.ftp, "password", "")
 
     if not user:
-        log.warning(
-            "No user found for connection '%s' — expected env var '%s' in .env.",
-            conn.name, user_env,
-        )
+        log.warning("No FTP user resolved for connection '%s'.", conn.name)
     if not password:
-        log.warning(
-            "No password found for connection '%s' — expected env var '%s' in .env.",
-            conn.name, password_env,
-        )
-
-    # Inject directly into the ftp child Namespace.
-    object.__setattr__(conn.ftp, "user", user)
-    object.__setattr__(conn.ftp, "password", password)
+        log.warning("No FTP password resolved for connection '%s'.", conn.name)
 
 
 if __name__ == "__main__":

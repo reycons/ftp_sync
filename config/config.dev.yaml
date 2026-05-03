@@ -1,11 +1,18 @@
 # ftp_sync — development configuration
 # Secrets must be in .env — never in this file.
-# FTP connections are defined in config/ftp.{name}.yaml files.
+# FTP connections are defined in config/data_feeds/ftp.{name}.yaml files.
 
 log_path: logs/ftp_sync_{operation}_{timestamp}.log
 
-sync:
-  chunk_size: 50
+# Central environment key registry.
+# Downstream YAML files reference these values via: env.<name>
+env:
+  - name: ftp_user_client01
+    env_var: FTP_USER_CLIENT01
+    generate: false
+  - name: ftp_password_client01
+    env_var: FTP_PASSWORD_CLIENT01
+    generate: false
 
 schedule:
   description: "Daily at 04:00 AM"

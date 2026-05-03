@@ -42,7 +42,8 @@ FTP_PASSWORD=your_actual_password
 
 ### 4 — Edit the config files
 
-Update `config.prod.yaml` (and `config.dev.yaml` for local testing):
+Update `config/config.prod.yaml` (and `config/config.dev.yaml` for local testing),
+plus your connection file under `config/data_feeds/`:
 
 | Key | Description |
 |---|---|
@@ -52,7 +53,7 @@ Update `config.prod.yaml` (and `config.dev.yaml` for local testing):
 | `sync.remote_paths` | List of remote directories to watch |
 | `sync.local_destination` | Local root folder for downloaded files |
 | `sync.state_file` | Path to the JSON tracking file |
-| `sync.chunk_size` | Files per processing chunk (tune for memory) |
+| `sync.chunk_size` | Files per processing chunk (set per connection in `config/data_feeds/ftp.<name>.yaml`) |
 | `filters.extensions` | File extensions to download; empty = all |
 | `filters.name_pattern` | Glob filter on filename, e.g. `report_*`; null = disabled |
 | `filters.max_age_days` | Skip files older than N days; null = disabled |
@@ -100,8 +101,11 @@ Unregister-ScheduledTask -TaskName "ftp_sync_daily" -Confirm:$false
 
 ```
 main.py                  # Orchestration only
-config.dev.yaml          # Dev config
-config.prod.yaml         # Prod config
+config/
+    config.dev.yaml      # Dev singleton config
+    config.prod.yaml     # Prod singleton config
+    data_feeds/
+        ftp.client01.yaml
 .env                     # Secrets — never committed
 .env.example             # Template for .env
 .gitignore
@@ -109,22 +113,16 @@ requirements.txt
 setup_task.ps1           # Registers Windows Task Scheduler job
 README.md
 .venv/
-app/
-    ftp_client.py        # FTP connection and file operations
-    state_manager.py     # Tracks downloaded files (JSON state)
-    sync_engine.py       # Orchestrates compare, filter, download
-lib/
-    ctx.py               # AppContext dataclass
-    config_utils.py      # Loads YAML + .env → ctx
-    error_utils.py       # Custom exceptions and error handling
-    log_utils.py         # Logging setup and log_enter/log_exit helpers
+ftp_sync/
+    __init__.py
+    error_utils.py       # App-specific exceptions
+sql/
+    duckdb/
 tests/
     conftest.py
-    app/
+    ftp_sync/
         test_state_manager.py
         test_sync_engine.py
-    lib/
-        test_config_utils.py
 ```
 
 ---
@@ -132,7 +130,8 @@ tests/
 ## Porting to a new client
 
 1. Copy the entire project folder.
-2. Update `config.prod.yaml` with the new client's FTP details and paths.
+2. Update `config/config.prod.yaml` and `config/data_feeds/ftp.<client>.yaml` with the
+    new client's settings.
 3. Create a new `.env` with the new FTP password.
 4. Run `setup_task.ps1` on the new machine.
 

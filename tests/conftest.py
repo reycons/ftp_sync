@@ -33,6 +33,7 @@ def conn(tmp_path: Path) -> Namespace:
             max_retry_sessions=3,
         ),
         sync=Namespace(
+            chunk_size=10,
             remote_paths=["/incoming/"],
             local_destination=tmp_path / "downloads",
             state_file=tmp_path / "state.json",

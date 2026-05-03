@@ -21,4 +21,4 @@ logs/
 .mypy_cache/
 .DS_Store
 config/config.prod.yaml
-config/ftp.*.yaml
+config/data_feeds/ftp.*.yaml
