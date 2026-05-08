@@ -1,8 +1,0 @@
-# ftp_sync — development configuration
-# Secrets must be in .env — never in this file.
-# FTP connections are defined in config/data_feeds/ftp.{name}.yaml files.
-
-log_path: logs/ftp_sync_{operation}_{timestamp}.log
-
-schedule:
-  description: "Daily at 06:00 AM"

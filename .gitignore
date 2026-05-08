@@ -20,5 +20,6 @@ logs/
 .ruff_cache/
 .mypy_cache/
 .DS_Store
+config/config.dev.yaml
 config/config.prod.yaml
 config/data_feeds/ftp.*.yaml

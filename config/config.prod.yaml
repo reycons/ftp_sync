@@ -1,7 +1,0 @@
-log_path: D:/Python/logs/ftp_sync_{operation}_{timestamp}.log
-
-sync:
-  chunk_size: 100
-
-schedule:
-  description: "Daily at 06:00 AM"
