@@ -13,20 +13,17 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import logging
 import sys
 from pathlib import Path
 
 from rey_lib.config.config_utils import build_ctx
-from rey_lib.logs.log_utils import setup_logging
 from rey_lib.ftp.sync_engine import run_sync
+from rey_lib.logs.log_utils import get_logger, setup_logging
 
 from ftp_sync.error_utils import FtpSyncError
 
 # Project root is the directory containing this file.
 _PROJECT_ROOT = Path(__file__).parent
-
-log = logging.getLogger(__name__)
 
 
 def main() -> None:
@@ -42,18 +39,19 @@ def main() -> None:
 
     # Initialise logging — one log file per run, named with timestamp.
     setup_logging(ctx, operation="sync")
-    log.info("=== ftp_sync starting (env=%s) ===", ctx.env)
+    _logger = get_logger(__name__)
+    _logger.info("=== ftp_sync starting (env=%s) ===", ctx.env)
 
     # Connections are defined in config/data_feeds/ftp.{name}.yaml files.
     connections = getattr(ctx, "connections", [])
     if not connections:
-        log.error("No connections defined in config — nothing to do.")
+        _logger.error("No connections defined in config — nothing to do.")
         sys.exit(1)
 
     # FTP credentials are resolved by build_ctx via env.<name> references.
     # Validate and warn when required values are missing.
     for conn in connections:
-        _validate_connection_secrets(conn)
+        _validate_connection_secrets(conn, _logger)
 
     # Run sync for every connection sequentially.
     total         = 0
@@ -63,10 +61,10 @@ def main() -> None:
             downloaded = run_sync(ctx, conn)
             total += downloaded
         except FtpSyncError as exc:
-            log.error("Sync failed for connection '%s': %s", conn.name, exc)
+            _logger.error("Sync failed for connection '%s': %s", conn.name, exc)
             conn_failed += 1
 
-    log.info(
+    _logger.info(
         "=== ftp_sync finished — total downloaded: %d, failed connections: %d ===",
         total, conn_failed,
     )
@@ -89,15 +87,15 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def _validate_connection_secrets(conn: object) -> None:
+def _validate_connection_secrets(conn: object, _logger: object) -> None:
     """Warn if resolved FTP user/password are missing for a connection."""
     user = getattr(conn.ftp, "user", "")
     password = getattr(conn.ftp, "password", "")
 
     if not user:
-        log.warning("No FTP user resolved for connection '%s'.", conn.name)
+        _logger.warning("No FTP user resolved for connection '%s'.", conn.name)
     if not password:
-        log.warning("No FTP password resolved for connection '%s'.", conn.name)
+        _logger.warning("No FTP password resolved for connection '%s'.", conn.name)
 
 
 if __name__ == "__main__":
