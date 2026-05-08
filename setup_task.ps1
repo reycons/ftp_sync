@@ -20,12 +20,11 @@ param(
     [string]$Env = "prod"
 )
 
-$TaskName    = "ftp_sync_daily"
-$PythonExe   = Join-Path $ProjectDir ".venv\Scripts\python.exe"
-$MainScript  = Join-Path $ProjectDir "main.py"
-$Arguments   = "main.py --env $Env"
+$TaskName  = "ftp_sync_daily"
+$PythonExe = Join-Path $ProjectDir ".venv\Scripts\python.exe"
+$Arguments = "main.py --env $Env"
 
-# ── Validate project directory ────────────────────────────────────────────────
+# Validate project directory
 if (-not (Test-Path $ProjectDir)) {
     Write-Error "ProjectDir not found: $ProjectDir"
     exit 1
@@ -36,16 +35,16 @@ if (-not (Test-Path $PythonExe)) {
     exit 1
 }
 
-# ── Build the scheduled task ──────────────────────────────────────────────────
-$Action  = New-ScheduledTaskAction -Execute $PythonExe -Argument $Arguments -WorkingDirectory $ProjectDir
-$Trigger = New-ScheduledTaskTrigger -Daily -At $RunAt
+# Build the scheduled task
+$Action   = New-ScheduledTaskAction -Execute $PythonExe -Argument $Arguments -WorkingDirectory $ProjectDir
+$Trigger  = New-ScheduledTaskTrigger -Daily -At $RunAt
 $Settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit (New-TimeSpan -Hours 2) `
     -RestartCount 2 `
     -RestartInterval (New-TimeSpan -Minutes 5) `
     -StartWhenAvailable
 
-# ── Remove existing task if present, then register ───────────────────────────
+# Remove existing task if present, then register
 if (Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue) {
     Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
     Write-Host "Removed existing task: $TaskName"
@@ -57,7 +56,7 @@ Register-ScheduledTask `
     -Trigger $Trigger `
     -Settings $Settings `
     -RunLevel Highest `
-    -Description "Daily FTP sync — downloads new files from configured remote paths."
+    -Description "Daily FTP sync - downloads new files from configured remote paths."
 
 Write-Host ""
 Write-Host "Task registered: $TaskName"
@@ -65,6 +64,3 @@ Write-Host "  Runs daily at : $RunAt"
 Write-Host "  Environment   : $Env"
 Write-Host "  Python        : $PythonExe"
 Write-Host "  Working dir   : $ProjectDir"
-Write-Host ""
-Write-Host "To run immediately: Start-ScheduledTask -TaskName $TaskName"
-Write-Host "To remove:          Unregister-ScheduledTask -TaskName $TaskName"
