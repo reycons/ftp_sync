@@ -67,4 +67,4 @@ Write-Host "  Python        : $PythonExe"
 Write-Host "  Working dir   : $ProjectDir"
 Write-Host ""
 Write-Host "To run immediately: Start-ScheduledTask -TaskName '$TaskName'"
-Write-Host "To remove:          Unregister-ScheduledTask -TaskName '$TaskName' -Confirm:$([char]36)false"
+Write-Host ("To remove:          Unregister-ScheduledTask -TaskName '$TaskName' -Confirm:" + '$false')
