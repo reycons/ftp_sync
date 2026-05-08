@@ -1,6 +1,9 @@
 # Shared library — all config, logging, FTP, and state management
 rey_lib @ git+https://github.com/reycons/rey_lib.git@v0.9.10
 
+# SFTP support (required when any connection uses protocol: sftp)
+paramiko>=3.4.0
+
 # Linting and formatting
 ruff==0.4.4
 black==24.4.2
