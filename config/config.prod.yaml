@@ -1,25 +1,7 @@
-# ftp_sync — production configuration
-# Secrets must be in .env — never in this file.
-# FTP connections are defined in config/data_feeds/ftp.{name}.yaml files.
-# This is a template — update log_path for each client deployment.
-
 log_path: D:/Python/logs/ftp_sync_{operation}_{timestamp}.log
 
-# Central environment key registry.
-# Downstream YAML files reference these values via: env.<name>
-env:
-  - name: ftp_user_client01
-    env_var: FTP_USER_CLIENT01
-    generate: false
-  - name: ftp_password_client01
-    env_var: FTP_PASSWORD_CLIENT01
-    generate: false
-  - name: ftp_user_advantage
-    env_var: FTP_USER_ADVANTAGE
-    generate: false
-  - name: ftp_password_advantage
-    env_var: FTP_PASSWORD_ADVANTAGE
-    generate: false
+sync:
+  chunk_size: 100
 
 schedule:
-  description: "Daily at 04:00 AM"
+  description: "Daily at 06:00 AM"

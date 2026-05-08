@@ -4,21 +4,5 @@
 
 log_path: logs/ftp_sync_{operation}_{timestamp}.log
 
-# Central environment key registry.
-# Downstream YAML files reference these values via: env.<name>
-env:
-  - name: ftp_user_client01
-    env_var: FTP_USER_CLIENT01
-    generate: false
-  - name: ftp_password_client01
-    env_var: FTP_PASSWORD_CLIENT01
-    generate: false
-  - name: ftp_user_advantage
-    env_var: FTP_USER_ADVANTAGE
-    generate: false
-  - name: ftp_password_advantage
-    env_var: FTP_PASSWORD_ADVANTAGE
-    generate: false
-
 schedule:
-  description: "Daily at 04:00 AM"
+  description: "Daily at 06:00 AM"
