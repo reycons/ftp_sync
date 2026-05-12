@@ -40,7 +40,7 @@ def main() -> None:
 
         ctx = build_ctx(
             env=args.env,
-            project_root=PROJECT_ROOT,
+            project_root=_PROJECT_ROOT,
             config_dir=config_dir,
         )
 
