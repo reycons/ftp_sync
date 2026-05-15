@@ -69,7 +69,7 @@ def main() -> None:
     conn_failed   = 0
     for conn in connections:
         try:
-            downloaded = run_sync(ctx, conn)
+            downloaded = run_sync(ctx, conn, resync=args.resync)
             total += downloaded
         except FtpSyncError as exc:
             _logger.error("Sync failed for connection '%s': %s", conn.name, exc)
@@ -94,6 +94,23 @@ def _parse_args() -> argparse.Namespace:
         required=True,
         choices=["dev", "prod"],
         help="Runtime environment — controls which config file is loaded.",
+    )
+    resync_group = parser.add_mutually_exclusive_group()
+    resync_group.add_argument(
+        "--resync",
+        dest="resync",
+        action="store_true",
+        default=True,
+        help="Check every remote file against state (default).",
+    )
+    resync_group.add_argument(
+        "--no-resync",
+        dest="resync",
+        action="store_false",
+        help=(
+            "Use the high-water mark stamp to skip files older than the last run. "
+            "Faster for routine runs on large remote directories."
+        ),
     )
     return parser.parse_args()
 
