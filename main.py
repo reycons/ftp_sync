@@ -19,6 +19,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+_config_dir_env = os.environ.get("APP_CONFIG_DIR")
+load_dotenv(Path(_config_dir_env).expanduser() / ".env" if _config_dir_env else None)
+
 from rey_lib.config.config_utils import build_ctx
 from rey_lib.ftp.sync_engine import run_sync
 from rey_lib.logs.log_utils import get_logger, setup_logging
@@ -35,13 +38,9 @@ def main() -> None:
 
     # Build ctx — loads all YAML files under config/, resolves paths.
     try:
-        load_dotenv(_PROJECT_ROOT / ".env")
-        config_dir = os.getenv("APP_CONFIG_DIR")
-
         ctx = build_ctx(
             env=args.env,
             project_root=_PROJECT_ROOT,
-            config_dir=config_dir,
         )
 
     except Exception as exc:  # noqa: BLE001 — logging not yet initialised
