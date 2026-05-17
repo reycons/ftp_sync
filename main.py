@@ -19,10 +19,19 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-_config_dir_env = os.environ.get("APP_CONFIG_DIR")
+import argparse as _argparse
+
+_pre = _argparse.ArgumentParser(add_help=False)
+_pre.add_argument("--config-path", dest="config_path", default=None)
+_pre_args, _ = _pre.parse_known_args()
+
+_config_dir_env = (
+    str(Path(_pre_args.config_path).expanduser().parent) if _pre_args.config_path
+    else os.environ.get("APP_CONFIG_DIR")
+)
 load_dotenv(Path(_config_dir_env).expanduser() / ".env" if _config_dir_env else None)
 
-from rey_lib.config.config_utils import build_ctx
+from rey_lib.config.config_utils import build_ctx, build_ctx_from_path
 from rey_lib.ftp.sync_engine import run_sync
 from rey_lib.logs import get_logger, setup_logging
 
@@ -39,10 +48,15 @@ def main() -> None:
 
     # Build ctx — loads all YAML files under config/, resolves paths.
     try:
-        ctx = build_ctx(
-            env=args.env,
-            project_root=_PROJECT_ROOT,
-        )
+        if args.config_path:
+            ctx = build_ctx_from_path(
+                Path(args.config_path).expanduser().resolve(),
+                project_root=_PROJECT_ROOT,
+            )
+        else:
+            if not args.env:
+                raise SystemExit("--env is required when --config-path is not provided.")
+            ctx = build_ctx(env=args.env, project_root=_PROJECT_ROOT)
 
     except Exception as exc:  # noqa: BLE001 — logging not yet initialised
         print(f"FATAL: failed to load config — {exc}", file=sys.stderr)
@@ -91,9 +105,19 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--env",
-        required=True,
+        required=False,
+        default=None,
         choices=["dev", "prod"],
-        help="Runtime environment — controls which config file is loaded.",
+        help="Runtime environment. Required when --config-path is not provided.",
+    )
+    parser.add_argument(
+        "--config-path",
+        dest="config_path",
+        default=None,
+        help=(
+            "Path to the app config file (e.g. config.dev.yaml). "
+            "Derives env from filename; supersedes --env."
+        ),
     )
     resync_group = parser.add_mutually_exclusive_group()
     resync_group.add_argument(
