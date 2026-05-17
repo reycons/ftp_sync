@@ -17,21 +17,13 @@ import os
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
+# Pre-parse --config-path / --config-dir and call load_dotenv before other imports.
+from rey_lib.config.cli import preparse_config_args
+preparse_config_args()
 
-import argparse as _argparse
-
-_pre = _argparse.ArgumentParser(add_help=False)
-_pre.add_argument("--config-path", dest="config_path", default=None)
-_pre_args, _ = _pre.parse_known_args()
-
-_config_dir_env = (
-    str(Path(_pre_args.config_path).expanduser().parent) if _pre_args.config_path
-    else os.environ.get("APP_CONFIG_DIR")
-)
-load_dotenv(Path(_config_dir_env).expanduser() / ".env" if _config_dir_env else None)
-
-from rey_lib.config.config_utils import build_ctx, build_ctx_from_path
+from rey_lib.config.bootstrap import build_ctx_for_app
+from rey_lib.config.cli import add_config_args, apply_env_overrides
+from rey_lib.config.config_utils import build_ctx
 from rey_lib.ftp.sync_engine import run_sync
 from rey_lib.logs import get_logger, setup_logging
 
@@ -44,13 +36,14 @@ _PROJECT_ROOT = Path(__file__).parent
 def main() -> None:
     """Entry point: load config, inject secrets, run sync for every connection."""
     args = _parse_args()
-    _apply_env_overrides(args.env_overrides)
+    apply_env_overrides(args.env_overrides)
 
     # Build ctx — loads all YAML files under config/, resolves paths.
     try:
         if args.config_path:
-            ctx = build_ctx_from_path(
-                Path(args.config_path).expanduser().resolve(),
+            ctx = build_ctx_for_app(
+                installation_config_path=Path(args.config_path),
+                app_name="ftp_sync",
                 project_root=_PROJECT_ROOT,
             )
         else:
@@ -103,22 +96,7 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Download new or updated files from all configured FTP connections."
     )
-    parser.add_argument(
-        "--env",
-        required=False,
-        default=None,
-        choices=["dev", "prod"],
-        help="Runtime environment. Required when --config-path is not provided.",
-    )
-    parser.add_argument(
-        "--config-path",
-        dest="config_path",
-        default=None,
-        help=(
-            "Path to the app config file (e.g. config.dev.yaml). "
-            "Derives env from filename; supersedes --env."
-        ),
-    )
+    add_config_args(parser)
     resync_group = parser.add_mutually_exclusive_group()
     resync_group.add_argument(
         "--resync",
@@ -136,24 +114,7 @@ def _parse_args() -> argparse.Namespace:
             "Faster for routine runs on large remote directories."
         ),
     )
-    parser.add_argument(
-        "--set",
-        action="append",
-        metavar="KEY=VALUE",
-        dest="env_overrides",
-        default=[],
-        help="Override a .env variable for this run (repeatable): --set KEY=VALUE",
-    )
     return parser.parse_args()
-
-
-def _apply_env_overrides(overrides: list[str]) -> None:
-    """Write --set KEY=VALUE pairs into os.environ before build_ctx reads them."""
-    for item in overrides:
-        if "=" not in item:
-            raise SystemExit(f"--set requires KEY=VALUE format, got: {item!r}")
-        key, _, value = item.partition("=")
-        os.environ[key.strip()] = value
 
 
 def _validate_connection_secrets(conn: object, _logger: object) -> None:
