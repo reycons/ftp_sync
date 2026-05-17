@@ -24,7 +24,7 @@ load_dotenv(Path(_config_dir_env).expanduser() / ".env" if _config_dir_env else 
 
 from rey_lib.config.config_utils import build_ctx
 from rey_lib.ftp.sync_engine import run_sync
-from rey_lib.logs.log_utils import get_logger, setup_logging
+from rey_lib.logs import get_logger, setup_logging
 
 from ftp_sync.error_utils import FtpSyncError
 
