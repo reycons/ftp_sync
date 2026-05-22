@@ -1,0 +1,5 @@
+{
+  "config_dirs": ["data_feeds"],
+  "default_files": [],
+  "pip_editable": false
+}
