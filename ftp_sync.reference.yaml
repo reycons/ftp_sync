@@ -1,0 +1,125 @@
+# =============================================================================
+# FTP SYNC — Configuration Reference
+#
+# Documents every available setting in ftp_sync config files.
+# Values shown are examples or defaults. This file is never loaded by the app.
+# =============================================================================
+
+# Config file names used by this app:
+#   app.yaml
+#   config.dev.yaml
+#   config.test.yaml
+#   config.prod.yaml
+#   data_feeds/ftp.{name}.yaml
+
+
+# =============================================================================
+# FILE: app.yaml
+# =============================================================================
+
+name: ftp_sync
+# Required. Must be ftp_sync.
+
+enabled: true
+# Options: true, false.
+
+version: v01
+# Informational version label.
+
+
+# =============================================================================
+# FILE: config.{env}.yaml
+#
+# Main app config. One per environment.
+# =============================================================================
+
+log_path: ~/logs/ftp_sync/ftp_sync.{operation}.{timestamp}.log
+# Log file path.
+# Tokens:
+#   {operation}
+#   {timestamp}
+
+sync:
+  chunk_size: 100
+  # Optional default files-per-processing chunk.
+
+schedule:
+  description: "Daily at 06:00 AM"
+  # Informational schedule text.
+
+
+# =============================================================================
+# FILE: data_feeds/ftp.{name}.yaml
+#
+# One or more FTP/SFTP connection entries. All files under data_feeds are
+# merged into ctx.connections.
+# =============================================================================
+
+connections:
+
+  - name: client01
+    # Required unique connection name.
+
+    ftp:
+      protocol: ftp
+      # Options:
+      #   ftp
+      #   ftps
+      #   sftp
+
+      host: ftp.client01.com
+      # Required remote host.
+
+      port: 21
+      # Common values:
+      #   21 for ftp/ftps
+      #   22 for sftp
+
+      user: env.ftp_user_client01
+      password: env.ftp_password_client01
+      # Use env.<name> references. Secrets should not be literal YAML values.
+
+      max_retry_sessions: 3
+      # Optional integer. Failed downloads are abandoned after this many runs.
+
+    sync:
+      chunk_size: 50
+      # Files per processing chunk for this connection.
+
+      max_files_per_run: null
+      # null means no limit. Otherwise use an integer such as 500.
+
+      remote_paths:
+        - /incoming/
+        - /archive/2026-*/
+      # Remote directories or globbed remote directories.
+
+      local_destination: ~/ftp_downloads/client01
+      # Destination folder for downloaded files.
+
+      state_file: ~/ftp_downloads/client01/.state.json
+      # High-water mark/state tracking file.
+
+      failed_file: ~/ftp_downloads/client01/.failed.json
+      # Retry queue file.
+
+      initial_stamp: null
+      # null means start without a high-water mark.
+      # Otherwise use a timestamp string accepted by the sync engine.
+
+    filters:
+      extensions: []
+      # Include only these extensions. [] means all.
+      # Examples: [.csv, .txt, .xlsx]
+
+      exclude_extensions:
+        - .filepart
+        - .tmp
+      # Always excluded extensions.
+
+      name_pattern: null
+      # Optional glob. null means no filename filter.
+      # Example: "client01_*.csv"
+
+      max_age_days: null
+      # Optional integer. null means no age limit.
