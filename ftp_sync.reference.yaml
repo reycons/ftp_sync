@@ -123,3 +123,58 @@ connections:
 
       max_age_days: null
       # Optional integer. null means no age limit.
+
+
+# =============================================================================
+# FTP REMOTE FILE METADATA SHAPE
+#
+# The sync engine represents each remote file as a three-item tuple.
+# All filter functions and download logic use this shape.
+# =============================================================================
+
+# Remote file tuple: (filename: str, modified_utc: datetime, size: int)
+#   filename     — remote filename (basename only, not the full path)
+#   modified_utc — last-modified timestamp in UTC
+#   size         — file size in bytes; -1 when the server does not report it
+
+
+# =============================================================================
+# CLI — ftp_sync command-line interface
+#
+# All parameters are passed as --name value or --flag.
+# =============================================================================
+
+# ftp_sync CLI parameters:
+#
+# --resync                  Check every remote file against the state file
+#                           regardless of the high-water mark. Default behavior.
+#
+# --no-resync               Use the high-water mark stamp to skip remote files
+#                           older than the last successful run. Faster for
+#                           routine runs on large remote directories.
+#
+# --config-path <path>      Path to the installation config file or config root.
+#                           Supersedes --config-dir and --environment.
+#
+# --config-dir <path>       Directory containing config.<env>.yaml.
+#                           Overrides APP_CONFIG_DIR environment variable.
+#
+# --environment <value>     Runtime environment.
+#                           Choices: development, test, production
+#
+# --installation <value>    Installation name.
+#
+# --set KEY=VALUE           Override a .env variable for this run. Repeatable.
+#
+# Pipeline coordinator arguments (injected by pipeline_coordinator):
+#
+# --pipeline-name <value>       Pipeline name.
+# --pipeline-run-id <value>     Unique run identifier.
+# --pipeline-step-name <value>  Step name within the pipeline.
+# --pipeline-step-id <value>    Optional step identifier.
+# --log-file <path>             Shared pipeline JSONL log file path.
+#
+# Usage examples:
+#   python main.py --environment development
+#   python main.py --environment production --no-resync
+#   python main.py --config-path ~/installations/ccc/config/v01/config.prod.yaml

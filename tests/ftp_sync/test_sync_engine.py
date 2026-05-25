@@ -16,9 +16,9 @@ from rey_lib.ftp.sync_engine import (
 _NOW = datetime.now(tz=timezone.utc)
 
 
-def _file(name: str, days_old: int = 0) -> tuple[str, datetime]:
-    """Helper — build a (filename, modified_utc) tuple."""
-    return (name, _NOW - timedelta(days=days_old))
+def _file(name: str, days_old: int = 0) -> tuple[str, datetime, int]:
+    """Helper — build a (filename, modified_utc, size) tuple."""
+    return (name, _NOW - timedelta(days=days_old), -1)
 
 
 class TestFilterByExtension:
