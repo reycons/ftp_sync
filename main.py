@@ -28,6 +28,7 @@ from ftp_sync.error_utils import FtpSyncError
 
 # Project root is the directory containing this file.
 _PROJECT_ROOT = Path(__file__).parent
+APP_NAME = "ftp_sync"
 
 
 def main() -> None:
@@ -39,7 +40,7 @@ def main() -> None:
     try:
         if not args.config_path:
             raise SystemExit("--config-path is required.")
-        ctx = build_ctx_from_path(Path(args.config_path))
+        ctx = build_ctx_from_path(Path(args.config_path), app_name=APP_NAME)
 
     except Exception as exc:  # noqa: BLE001 — logging not yet initialised
         print(f"FATAL: failed to load config — {exc}", file=sys.stderr)
