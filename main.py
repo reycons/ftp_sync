@@ -6,14 +6,12 @@ run sync for every configured connection.
 No business logic lives here.
 
 Usage:
-    python main.py --env dev
-    python main.py --env prod
+    python main.py --config-path /path/to/configs/v01/config.yaml
 """
 
 from __future__ import annotations
 
 import argparse
-import os
 import sys
 from pathlib import Path
 
@@ -21,9 +19,8 @@ from pathlib import Path
 from rey_lib.config.cli import preparse_config_args
 preparse_config_args()
 
-from rey_lib.config.bootstrap import build_ctx_for_app
 from rey_lib.config.cli import add_config_args, apply_env_overrides
-from rey_lib.config.config_utils import build_ctx
+from rey_lib.config.config_utils import build_ctx_from_path
 from rey_lib.ftp.sync_engine import run_sync
 from rey_lib.logs import get_logger, setup_logging
 
@@ -40,16 +37,9 @@ def main() -> None:
 
     # Build ctx — loads all YAML files under config/, resolves paths.
     try:
-        if args.config_path:
-            ctx = build_ctx_for_app(
-                installation_config_path=Path(args.config_path),
-                app_name="ftp_sync",
-                project_root=_PROJECT_ROOT,
-            )
-        else:
-            if not args.env:
-                raise SystemExit("--env is required when --config-path is not provided.")
-            ctx = build_ctx(env=args.env, project_root=_PROJECT_ROOT)
+        if not args.config_path:
+            raise SystemExit("--config-path is required.")
+        ctx = build_ctx_from_path(Path(args.config_path))
 
     except Exception as exc:  # noqa: BLE001 — logging not yet initialised
         print(f"FATAL: failed to load config — {exc}", file=sys.stderr)
@@ -58,7 +48,7 @@ def main() -> None:
     # Initialise logging — one log file per run, named with timestamp.
     setup_logging(ctx, operation="sync")
     _logger = get_logger(__name__)
-    _logger.info("=== ftp_sync starting (env=%s) ===", ctx.env)
+    _logger.info("=== ftp_sync starting ===")
 
     # Connections are defined in config/data_feeds/ftp.{name}.yaml files.
     connections = getattr(ctx, "connections", [])

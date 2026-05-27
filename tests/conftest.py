@@ -13,7 +13,6 @@ import pytest
 def ctx() -> Namespace:
     """Minimal global context Namespace for tests."""
     return Namespace(
-        env="dev",
         log_depth=0,
         log_file="logs/ftp_sync_test.log",
         sync=Namespace(chunk_size=10),

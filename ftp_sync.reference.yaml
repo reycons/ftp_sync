@@ -144,6 +144,86 @@ connections:
 # All parameters are passed as --name value or --flag.
 # =============================================================================
 
+cli:
+  invocation: "python main.py [shared_parameters] [--resync|--no-resync]"
+  # Structured CLI contract for LLM/pipeline authors.
+  # ftp_sync has no subcommands; app-specific flags are appended directly
+  # after shared parameters.
+
+  shared_parameters:
+    - name: config-path
+      required: false
+      value_type: path
+      description: Path to an app config file, installation config file, or config root.
+
+    - name: config-dir
+      required: false
+      value_type: path
+      description: Directory containing config.<env>.yaml.
+
+    - name: environment
+      required: false
+      value_type: choice
+      possible_values: [development, test, production]
+      description: Runtime environment. Required when config-path is omitted.
+
+    - name: installation
+      required: false
+      value_type: string
+      description: Installation name.
+
+    - name: set
+      required: false
+      repeatable: true
+      value_type: KEY=VALUE
+      description: Override an environment variable for this run.
+
+    - name: pipeline-name
+      required: false
+      value_type: string
+      description: Pipeline name supplied by pipeline_coordinator.
+
+    - name: pipeline-run-id
+      required: false
+      value_type: string
+      description: Unique pipeline run identifier supplied by pipeline_coordinator.
+
+    - name: pipeline-step-name
+      required: false
+      value_type: string
+      description: Pipeline step name supplied by pipeline_coordinator.
+
+    - name: pipeline-step-id
+      required: false
+      value_type: string
+      description: Optional unique pipeline step identifier.
+
+    - name: log-file
+      required: false
+      value_type: path
+      description: Shared pipeline JSONL log path.
+
+  parameters:
+    - name: resync
+      required: false
+      value_type: flag
+      possible_values: [present]
+      default: true
+      mutually_exclusive_with: no-resync
+      description: Check every remote file against state.
+
+    - name: no-resync
+      required: false
+      value_type: flag
+      possible_values: [present]
+      mutually_exclusive_with: resync
+      description: Use high-water marks to skip older remote files.
+
+  examples:
+    - "python main.py --environment development"
+    - "python main.py --environment production --no-resync"
+    - "python main.py --config-path ~/installations/ccc/configs/v01/config.prod.yaml"
+
 # ftp_sync CLI parameters:
 #
 # --resync                  Check every remote file against the state file
