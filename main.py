@@ -19,8 +19,7 @@ from pathlib import Path
 from rey_lib.config.cli import preparse_config_args
 preparse_config_args()
 
-from rey_lib.config.cli import add_config_args, apply_env_overrides
-from rey_lib.config.config_utils import build_ctx_from_path
+from rey_lib.config.cli import add_config_args, apply_env_overrides, build_ctx_from_args
 from rey_lib.ftp.sync_engine import run_sync
 from rey_lib.logs import get_logger, setup_logging
 
@@ -40,7 +39,7 @@ def main() -> None:
     try:
         if not args.config_path:
             raise SystemExit("--config-path is required.")
-        ctx = build_ctx_from_path(Path(args.config_path), app_name=APP_NAME)
+        ctx = build_ctx_from_args(args, app_name=APP_NAME)
 
     except Exception as exc:  # noqa: BLE001 — logging not yet initialised
         print(f"FATAL: failed to load config — {exc}", file=sys.stderr)
