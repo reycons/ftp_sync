@@ -220,9 +220,8 @@ cli:
       description: Use high-water marks to skip older remote files.
 
   examples:
-    - "python main.py --environment development"
-    - "python main.py --environment production --no-resync"
-    - "python main.py --config-path ~/installations/ccc/configs/v01/config.prod.yaml"
+    - "python main.py --config-path ~/Rey Apps/ccc/configs/v01/config.yaml"
+    - "python main.py --config-path ~/Rey Apps/ccc/configs/v01/config.yaml --no-resync"
 
 # ftp_sync CLI parameters:
 #
@@ -233,16 +232,7 @@ cli:
 #                           older than the last successful run. Faster for
 #                           routine runs on large remote directories.
 #
-# --config-path <path>      Path to the installation config file or config root.
-#                           Supersedes --config-dir and --environment.
-#
-# --config-dir <path>       Directory containing config.<env>.yaml.
-#                           Overrides APP_CONFIG_DIR environment variable.
-#
-# --environment <value>     Runtime environment.
-#                           Choices: development, test, production
-#
-# --installation <value>    Installation name.
+# --config-path <path>      Path to the installation root config.yaml. Required.
 #
 # --set KEY=VALUE           Override a .env variable for this run. Repeatable.
 #
@@ -255,6 +245,5 @@ cli:
 # --log-file <path>             Shared pipeline JSONL log file path.
 #
 # Usage examples:
-#   python main.py --environment development
-#   python main.py --environment production --no-resync
-#   python main.py --config-path ~/installations/ccc/config/v01/config.prod.yaml
+#   python main.py --config-path ~/Rey Apps/ccc/configs/v01/config.yaml
+#   python main.py --config-path ~/Rey Apps/ccc/configs/v01/config.yaml --no-resync
