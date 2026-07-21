@@ -50,10 +50,18 @@ def main() -> None:
     _logger = get_logger(__name__)
     _logger.info("=== ftp_sync starting ===")
 
-    # Connections are defined in config/data_feeds/ftp.{name}.yaml files.
-    connections = getattr(ctx, "connections", [])
+    # The connections registry is shared: it may hold database connections
+    # (provider block) alongside FTP jobs. Process only entries that define an
+    # ftp configuration block.
+    all_connections = getattr(ctx, "connections", [])
+    connections = [c for c in all_connections if getattr(c, "ftp", None) is not None]
+
+    skipped = len(all_connections) - len(connections)
+    if skipped:
+        _logger.info("Skipping %d non-FTP connection(s) with no ftp block.", skipped)
+
     if not connections:
-        _logger.error("No connections defined in config — nothing to do.")
+        _logger.error("No FTP connections defined in config — nothing to do.")
         sys.exit(1)
 
     # FTP credentials are resolved by build_ctx via env.<name> references.
