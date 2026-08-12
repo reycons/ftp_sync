@@ -21,7 +21,8 @@ preparse_config_args()
 
 from rey_lib.config.cli import add_config_args, apply_env_overrides, build_ctx_from_args
 from rey_lib.ftp.sync_engine import run_sync
-from rey_lib.logs import get_logger, setup_logging
+from rey_lib.config.bootstrap import build_ctx_for_app
+from rey_lib.logs import get_logger
 
 from ftp_sync.error_utils import FtpSyncError
 
@@ -46,7 +47,7 @@ def main() -> None:
         sys.exit(1)
 
     # Initialise logging — one log file per run, named with timestamp.
-    setup_logging(ctx, operation="sync")
+    build_ctx_for_app(ctx=ctx, operation="sync")
     _logger = get_logger(__name__)
     _logger.info("=== ftp_sync starting ===")
 
