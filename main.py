@@ -21,7 +21,7 @@ preparse_config_args()
 
 from rey_lib.config.cli import add_config_args, apply_env_overrides, build_ctx_from_args
 from rey_lib.ftp.sync_engine import run_sync
-from rey_lib.config.bootstrap import build_ctx_for_app
+from rey_lib.config.bootstrap import app_runtime
 from rey_lib.logs import get_logger
 
 from ftp_sync.error_utils import FtpSyncError
@@ -47,47 +47,51 @@ def main() -> None:
         sys.exit(1)
 
     # Initialise logging — one log file per run, named with timestamp.
-    build_ctx_for_app(ctx=ctx, operation="sync")
-    _logger = get_logger(__name__)
-    _logger.info("=== ftp_sync starting ===")
+    # app_runtime is the process boundary: it composes the context and,
+    # when this block exits, collects the shared runtime objects it
+    # created. It encloses everything below, so any existing finalization
+    # runs while those objects are still live and collection happens after.
+    with app_runtime(ctx=ctx, operation="sync") as ctx:
+        _logger = get_logger(__name__)
+        _logger.info("=== ftp_sync starting ===")
 
-    # The connections registry is shared: it may hold database connections
-    # (provider block) alongside FTP jobs. Process only entries that define an
-    # ftp configuration block.
-    all_connections = getattr(ctx, "connections", [])
-    connections = [c for c in all_connections if getattr(c, "ftp", None) is not None]
+        # The connections registry is shared: it may hold database connections
+        # (provider block) alongside FTP jobs. Process only entries that define an
+        # ftp configuration block.
+        all_connections = getattr(ctx, "connections", [])
+        connections = [c for c in all_connections if getattr(c, "ftp", None) is not None]
 
-    skipped = len(all_connections) - len(connections)
-    if skipped:
-        _logger.info("Skipping %d non-FTP connection(s) with no ftp block.", skipped)
+        skipped = len(all_connections) - len(connections)
+        if skipped:
+            _logger.info("Skipping %d non-FTP connection(s) with no ftp block.", skipped)
 
-    if not connections:
-        _logger.error("No FTP connections defined in config — nothing to do.")
-        sys.exit(1)
+        if not connections:
+            _logger.error("No FTP connections defined in config — nothing to do.")
+            sys.exit(1)
 
-    # FTP credentials are resolved by build_ctx via env.<name> references.
-    # Validate and warn when required values are missing.
-    for conn in connections:
-        _validate_connection_secrets(conn, _logger)
+        # FTP credentials are resolved by build_ctx via env.<name> references.
+        # Validate and warn when required values are missing.
+        for conn in connections:
+            _validate_connection_secrets(conn, _logger)
 
-    # Run sync for every connection sequentially.
-    total         = 0
-    conn_failed   = 0
-    for conn in connections:
-        try:
-            downloaded = run_sync(ctx, conn, resync=args.resync)
-            total += downloaded
-        except FtpSyncError as exc:
-            _logger.error("Sync failed for connection '%s': %s", conn.name, exc)
-            conn_failed += 1
+        # Run sync for every connection sequentially.
+        total         = 0
+        conn_failed   = 0
+        for conn in connections:
+            try:
+                downloaded = run_sync(ctx, conn, resync=args.resync)
+                total += downloaded
+            except FtpSyncError as exc:
+                _logger.error("Sync failed for connection '%s': %s", conn.name, exc)
+                conn_failed += 1
 
-    _logger.info(
-        "=== ftp_sync finished — total downloaded: %d, failed connections: %d ===",
-        total, conn_failed,
-    )
-    # Exit non-zero if any connection failed entirely — individual file failures
-    # are queued for retry and do not affect the exit code here.
-    sys.exit(0 if conn_failed == 0 else 1)
+        _logger.info(
+            "=== ftp_sync finished — total downloaded: %d, failed connections: %d ===",
+            total, conn_failed,
+        )
+        # Exit non-zero if any connection failed entirely — individual file failures
+        # are queued for retry and do not affect the exit code here.
+        sys.exit(0 if conn_failed == 0 else 1)
 
 
 def _parse_args() -> argparse.Namespace:
