@@ -51,7 +51,7 @@ def main() -> None:
     # when this block exits, collects the shared runtime objects it
     # created. It encloses everything below, so any existing finalization
     # runs while those objects are still live and collection happens after.
-    with app_runtime(ctx=ctx, operation="sync") as ctx:
+    with app_runtime(ctx=ctx, operation="sync") as (ctx, run_log):
         _logger = get_logger(__name__)
         _logger.info("=== ftp_sync starting ===")
 
