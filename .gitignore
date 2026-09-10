@@ -21,3 +21,7 @@ logs/
 .mypy_cache/
 .DS_Store
 config/
+
+# Build metadata from the editable install that publishes the
+# rey.applications entry point. Generated, never committed.
+*.egg-info/
