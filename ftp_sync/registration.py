@@ -108,6 +108,13 @@ def get_registration() -> dict[str, Any]:
     """
     return {
         "name": APPLICATION_NAME,
+        # The mark this application is known by, published the way its CLI and
+        # its operations are: which icon is an application's own is a fact
+        # about the application, not a choice an installation makes.
+        #
+        # A NAME, never markup. The surface that draws it holds the artwork and
+        # accepts no SVG from an installed distribution.
+        "icon": "app.ftp_sync",
         "entry_point": "main.py",
         "cli": CLI,
         "workflow_operations": [],
